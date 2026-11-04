@@ -192,7 +192,6 @@ export class DevicePropertyComponent implements OnInit, OnDestroy {
 		});
 		// check security
 		if (this.data.device.id && (this.data.device.type === DeviceType.OPCUA || this.data.device.type === DeviceType.MQTTclient
-<<<<<<< HEAD
 			|| this.data.device.type === DeviceType.ODBC || this.data.device.type === DeviceType.SNMP ||
 			this.data.device.type === DeviceType.PostgreSQL)) {
 			this.projectService.getDeviceSecurity(this.data.device.id).pipe(
