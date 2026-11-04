@@ -132,6 +132,10 @@ export class DeviceTagSelectionComponent implements OnInit, AfterViewInit, OnDes
             this.tagPropertyService.addTagsOpcUa(device).subscribe(result => {
                 this.loadDevicesTags();
             });
+        } else if (device.type === DeviceType.PostgreSQL) {
+            this.tagPropertyService.addTagsPostgreSQL(device).subscribe(result => {
+                this.loadDevicesTags();
+            });
         } else if (device.type === DeviceType.BACnet) {
             this.tagPropertyService.editTagPropertyBacnet(device).subscribe(result => {
                 this.loadDevicesTags();

@@ -255,6 +255,8 @@ export class DeviceNetProperty {
     address: string;
     /** Address port */
     port: string;
+    /** PostgreSQL column used to order latest-row reads */
+    orderBy?: string;
     /** Slot number used for Siemens S7 connection */
     slot: string;
     /** Rack number used for Siemens S7 connection */
@@ -340,6 +342,7 @@ export enum DeviceType {
     GenericEthernetIP = 'GenericEthernetIP',
     OmronEthernetIP = 'OmronEthernetIP',
     ODBC = 'ODBC',
+    PostgreSQL = 'PostgreSQL',
     ADSclient = 'ADSclient',
     GPIO = 'GPIO',
     WebCam = 'WebCam',

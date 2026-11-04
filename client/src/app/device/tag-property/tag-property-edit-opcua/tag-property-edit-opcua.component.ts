@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, OnDestroy, ViewChild, Output, EventEmitter } from '@angular/core';
 import { HmiService } from '../../../_services/hmi.service';
 import { MAT_DIALOG_DATA as MAT_DIALOG_DATA, MatDialogRef as MatDialogRef } from '@angular/material/dialog';
-import { Device, OpcUaTagType, Tag } from '../../../_models/device';
+import { Device, DeviceType, OpcUaTagType, Tag } from '../../../_models/device';
 import { Subject, takeUntil } from 'rxjs';
 import { TreetableComponent, Node, NodeType } from '../../../gui-helpers/treetable/treetable.component';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -88,6 +88,7 @@ export class TagPropertyEditOpcuaComponent implements OnInit, OnDestroy {
             nodes.forEach((n) => {
                 let node = new Node(n.id, n.name);
                 node.class = n.class;
+                node.type = n.type;
                 node.property = this.getProperty(n);
                 let enabled = true;
                 if (node.class === NodeType.Variable) {
@@ -97,7 +98,7 @@ export class TagPropertyEditOpcuaComponent implements OnInit, OnDestroy {
                     }
                 }
                 this.treetable.addNode(node, parent, enabled, false);
-                if (node.class === NodeType.Variable) {
+                if (node.class === NodeType.Variable && this.data.device.type === DeviceType.OPCUA) {
                     this.hmiService.askNodeAttributes(this.data.device.id, n);
                 }
             });

@@ -1056,6 +1056,8 @@
     "device.not-property-security": "没有安全和加密模式",
     "device.property-connection-options": "连接选项",
     "device.property-port": "端口",
+    "device.property-host": "主机",
+    "device.property-order-by": "排序列",
     "device.property-slave-id": "从属ID",
     "device.property-routing": "路由",
     "device.property-tockenized": "标记化(tokenized)",

@@ -21,10 +21,10 @@ It allows you to build modern dashboards, connect industrial devices and monitor
 
 ## ✨ Features
 - **Industrial protocol support**
-  Modbus RTU/TCP, Siemens S7 Protocol, OPC-UA, BACnet IP, MQTT, Ethernet/IP (Allen Bradley), ODBC, ADSclient, Gpio (Raspberry), WebCam, MELSEC, Redis, SNMP
+  Modbus RTU/TCP, Siemens S7 Protocol, OPC-UA, BACnet IP, MQTT, Ethernet/IP (Allen Bradley), ODBC, PostgreSQL, ADSclient, Gpio (Raspberry), WebCam, MELSEC, Redis, SNMP
 - **Database and data storage**
   Built-in data historian (DAQ) with support for SQLite, InfluxDB and other time-series databases.
-  External integrations via ODBC and Redis.
+  External integrations via ODBC, PostgreSQL and Redis.
 - **SCADA/HMI Web-Editor**
   Engineering and Design completely web-based
 - **Cross-platform architecture**
@@ -103,6 +103,12 @@ npm start
 ```
 
 Open up a browser (better Chrome) and navigate to http://localhost:1881
+
+### PostgreSQL device
+
+PostgreSQL is available as a device type when running FUXA from this source. Add the device with its host, port, PostgreSQL username and password, then use **Add tag** to browse databases, tables and columns. Credentials are stored using FUXA's device-security storage. Use a PostgreSQL role with read-only access to the databases and tables FUXA should browse.
+
+Column tags read the value from one row using `LIMIT 1`. Set **Order by column** to a column present in every selected table (for example, a timestamp or increasing ID) to consistently select the latest row. If it is unset, PostgreSQL does not guarantee which row is returned. The driver is read-only and follows the device polling interval.
 
 ### 3° Option - Install from [NPM](https://www.npmjs.com/package/@frangoteam/fuxa)
 
