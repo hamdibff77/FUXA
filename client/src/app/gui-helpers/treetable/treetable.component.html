@@ -3,11 +3,11 @@
 		<div *ngIf="node.visible" [ngSwitch]="treeType">
 			<div *ngSwitchCase="TypeOfTree.Standard">
 				<div class="item-text" [style.left.px]="node.childPos * 15" [style.width.px]="500 - node.childPos * 15">
-					<button mat-icon-button (click)="onExpandToggle(node)" [disabled]="!node.childs">
+					<button mat-icon-button (click)="onExpandToggle(node)" *ngIf="node.class === nodeType.Object">
 						<mat-icon *ngIf="node.expanded">expand_more</mat-icon>
 						<mat-icon *ngIf="!node.expanded">chevron_right</mat-icon>
 					</button>
-					<div *ngIf="!node.childs.length" class="item-waiting" style="width:40px"
+					<div *ngIf="node.waiting && !node.childs.length" class="item-waiting" style="width:40px"
 						[ngStyle]="{'display': (node.expanded) ? 'inline-block' : 'none'}">
 						<mat-spinner diameter="20"></mat-spinner>
 					</div>

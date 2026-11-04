@@ -244,6 +244,24 @@ function init(_io, _api, _settings, _log, eventsMain) {
                 logger.error(`${Events.IoEventTypes.DEVICE_BROWSE}: ${err}`);
             }
         });
+        socket.on(Events.IoEventTypes.DEVICE_OPTIONS_REQUEST, (message, acknowledge) => {
+            const reply = typeof acknowledge === 'function' ? acknowledge : () => {};
+            if (!isSocketWriteAuthorized(socket)) {
+                logger.warn(`${Events.IoEventTypes.DEVICE_OPTIONS_REQUEST}: unauthorized request from ${socket.userId || 'guest'}`);
+                reply({ error: 'Unauthorized request' });
+                return;
+            }
+            if (!message || typeof message.tagId !== 'string' || !message.tagId) {
+                reply({ error: 'A PostgreSQL option source tag is required' });
+                return;
+            }
+            devices.getPostgreSQLDistinctValues(message.tagId).then(result => {
+                reply({ result });
+            }).catch(error => {
+                logger.error(`${Events.IoEventTypes.DEVICE_OPTIONS_REQUEST}: ${error.stack || error}`);
+                reply({ error: error.message || 'Unable to load PostgreSQL options' });
+            });
+        });
         socket.on(Events.IoEventTypes.DEVICE_BROWSE_FOR_DEVICES, (message) => {
             if (!isSocketAdminAuthorized(socket)) {
                 logger.warn(`${Events.IoEventTypes.DEVICE_BROWSE_FOR_DEVICES}: unauthorized request from ${socket.userId || 'guest'}`);

@@ -43,12 +43,34 @@
 								<mat-icon>add_circle_outline</mat-icon>
 							</button>
 						</div>
+						<div *ngIf="isSelectGauge()" class="dynamic-options">
+							<flex-variable
+								[data]="data"
+								[variableId]="property.optionSourceTagId"
+								[withStaticValue]="false"
+								[tagLabel]="'gauges.property-options-source'"
+								[tagTitle]="'gauges.property-options-source-title'"
+								(onchange)="onOptionSourceChanged($event)">
+							</flex-variable>
+							<flex-variable
+								*ngIf="property.optionSourceTagId"
+								[data]="data"
+								[variableId]="property.optionRefreshTagId"
+								[withStaticValue]="false"
+								[tagLabel]="'gauges.property-options-refresh-tag'"
+								[tagTitle]="'gauges.property-options-refresh-title'"
+								(onchange)="onOptionRefreshTagChanged($event)">
+							</flex-variable>
+							<div class="option-config-message" *ngIf="property.optionSourceTagId && !isSelectOptionsConfigurationValid()">
+								{{'gauges.property-options-invalid' | translate}}
+							</div>
+						</div>
 					</div>
 					<div mat-dialog-content style="overflow: visible; width:100%;">
 						<flex-widget-property *ngIf="isWidget()"
 											[property]="property">
 						</flex-widget-property>
-						<flex-head *ngIf="!isWidget()" [data]="data" [property]="property" #flexhead [withBitmask]="withBitmask"></flex-head>
+						<flex-head *ngIf="!isWidget()" [data]="data" [property]="property" #flexhead [withBitmask]="withBitmask" [hideRanges]="!!property.optionSourceTagId"></flex-head>
 						<button-action-property *ngIf="isButton()" [property]="property"></button-action-property>
 					</div>
 				</div>
@@ -86,6 +108,6 @@
     </div>
     <div mat-dialog-actions class="dialog-action">
         <button mat-raised-button (click)="onNoClick()">{{'dlg.cancel' | translate}}</button>
-        <button mat-raised-button color="primary" (click)="onOkClick()" [mat-dialog-close]="data" [disabled]="isButtonActionInvalid()" cdkFocusInitial>{{'dlg.ok' | translate}}</button>
+        <button mat-raised-button color="primary" (click)="onOkClick()" [mat-dialog-close]="data" [disabled]="isButtonActionInvalid() || !isSelectOptionsConfigurationValid()" cdkFocusInitial>{{'dlg.ok' | translate}}</button>
     </div>
 </div>

@@ -68,6 +68,8 @@ export class GaugesManager {
 
     // list of gauges tags to speed up the check
     static gaugesTags = [];
+    private selectOptionsRequestSequence = 0;
+    private latestSelectOptionsRequest = new Map<string, number>();
 
     // list of gauges with input
     static GaugeWithProperty = [HtmlInputComponent.prefix, HtmlSelectComponent.prefix, HtmlSwitchComponent.prefix];
@@ -306,6 +308,9 @@ export class GaugesManager {
                     }
                 }
             }
+        }
+        if (ga.type.startsWith(HtmlSelectComponent.TypeTag) && ga.property?.optionSourceTagId) {
+            this.refreshSelectOptions(ga);
         }
         let mouseEvents: GaugeEvent[] = this.getBindMouseEvent(ga, null);
         if (mouseEvents?.length > 0 || HtmlButtonComponent.hasButtonAction(ga)) {
@@ -560,6 +565,9 @@ export class GaugesManager {
      */
     processValue(ga: GaugeSettings, svgele: any, sig: Variable, gaugeStatus: GaugeStatus) {
         gaugeStatus.variablesValue[sig.id] = sig.value;
+        if (ga.type.startsWith(HtmlSelectComponent.TypeTag) && ga.property?.optionRefreshTagId === sig.id) {
+            this.refreshSelectOptions(ga);
+        }
         for (let i = 0; i < GaugesManager.Gauges.length; i++) {
             if (ga.type.startsWith(GaugesManager.Gauges[i].TypeTag)) {
                 if (ga.type.startsWith(HtmlChartComponent.TypeTag)) {
@@ -634,6 +642,27 @@ export class GaugesManager {
                 }
             }
         }
+    }
+
+    private refreshSelectOptions(ga: GaugeSettings) {
+        const sourceTagId = ga.property?.optionSourceTagId;
+        if (!sourceTagId) {
+            return;
+        }
+
+        const requestSequence = ++this.selectOptionsRequestSequence;
+        this.latestSelectOptionsRequest.set(ga.id, requestSequence);
+        this.hmiService.requestPostgreSQLDistinctValues(sourceTagId).then(values => {
+            if (this.latestSelectOptionsRequest.get(ga.id) === requestSequence) {
+                HtmlSelectComponent.setDynamicOptions(ga, values);
+            }
+        }).catch(error => {
+            if (this.latestSelectOptionsRequest.get(ga.id) === requestSequence) {
+                const message = error instanceof Error ? error.message : String(error);
+                console.error(`Failed to load options for Select gauge '${ga.id}': ${message}`);
+                HtmlSelectComponent.setDynamicOptionsError(ga, message);
+            }
+        });
     }
 
     toggleSignalValue(sigid: string, bitmask?: number) {

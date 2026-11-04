@@ -27,6 +27,12 @@ describe('PostgreSQL device', function () {
             if (query.includes('FROM information_schema.columns')) {
                 return { rows: [{ column_name: 'temperature', data_type: 'double precision' }] };
             }
+            if (query.includes('SELECT DISTINCT')) {
+                return { rows: [{ value: 18.5 }, { value: 21.5 }] };
+            }
+            if (query.includes('SELECT * FROM "public"."sensor""data"')) {
+                return { rows: [{ temperature: 21.5, state: 'running' }] };
+            }
             if (query.includes('FROM "public"."sensor""data"')) {
                 return { rows: [{ value: 21.5 }] };
             }
@@ -60,27 +66,80 @@ describe('PostgreSQL device', function () {
 
         const tables = await client.browse({ id: databases[0].id });
         assert.strictEqual(tables[0].name, 'public.sensor"data');
+        assert.strictEqual(tables[0].type, 'object');
 
         const columns = await client.browse({ id: tables[0].id });
         assert.strictEqual(columns[0].name, 'temperature');
         assert.strictEqual(columns[0].type, 'number');
+        assert.deepStrictEqual(await client.browse({ id: columns[0].id }), []);
 
         device.tags.temperature = {
             id: 'temperature',
             address: columns[0].id,
             type: columns[0].type
         };
+        device.tags.row = {
+            id: 'row',
+            address: tables[0].id,
+            type: tables[0].type
+        };
         client.load(device);
+        assert.deepStrictEqual(await client.getDistinctValuesForTag('temperature'), ['18.5', '21.5']);
+        const distinctQuery = queries.find((entry) => entry.query.includes('SELECT DISTINCT'));
+        assert(distinctQuery.query.includes('FROM "public"."sensor""data"'));
+        assert.deepStrictEqual(distinctQuery.params, [1001]);
+
         let changedValues;
         events.on('device-value:changed', (message) => { changedValues = message.values; });
         await client.polling();
 
         assert.strictEqual(changedValues.temperature.value, 21.5);
-        const valueQuery = queries.find((entry) => entry.query.includes('FROM "public"."sensor""data"'));
+        assert.deepStrictEqual(changedValues.row.value, { temperature: 21.5, state: 'running' });
+        const valueQuery = queries.find((entry) =>
+            entry.query.includes('FROM "public"."sensor""data"') && entry.query.includes('LIMIT 1')
+        );
         assert(valueQuery);
         assert(valueQuery.query.includes('ORDER BY "created_at" DESC'));
         assert(valueQuery.query.includes('LIMIT 1'));
+        const rowQuery = queries.find((entry) => entry.query.includes('SELECT * FROM "public"."sensor""data"'));
+        assert(rowQuery);
+        assert(rowQuery.query.includes('ORDER BY "created_at" DESC'));
+        assert(rowQuery.query.includes('LIMIT 1'));
         await client.disconnect();
         assert(endStub.called);
+    });
+
+    it('rejects PostgreSQL option sources with more than 1000 distinct values', async function () {
+        queryStub.callsFake(async (query) => {
+            if (query.includes('SELECT DISTINCT')) {
+                return { rows: Array.from({ length: 1001 }, (_, index) => ({ value: index })) };
+            }
+            throw new Error(`Unexpected query: ${query}`);
+        });
+
+        const device = {
+            id: 'postgres-device',
+            name: 'PostgreSQL',
+            type: 'PostgreSQL',
+            enabled: true,
+            property: { address: '127.0.0.1', port: 5432 },
+            tags: {
+                temperature: {
+                    id: 'temperature',
+                    address: 'telemetry|public|sensor|temperature',
+                    type: 'number'
+                }
+            }
+        };
+        const client = PostgreSQL.create(device, { error() {} }, new EventEmitter(), {});
+        client.bindGetProperty(async () => ({
+            value: JSON.stringify({ uid: 'reader', pwd: 'secret' })
+        }));
+
+        await assert.rejects(
+            client.getDistinctValuesForTag('temperature'),
+            /more than 1000 distinct values/
+        );
+        await client.disconnect();
     });
 });

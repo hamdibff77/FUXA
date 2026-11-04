@@ -30,6 +30,9 @@ export class HtmlSelectComponent extends GaugeBaseComponent {
         if (pro.variableId) {
             res.push(pro.variableId);
         }
+        if (pro.optionRefreshTagId && !res.includes(pro.optionRefreshTagId)) {
+            res.push(pro.optionRefreshTagId);
+        }
         if (pro.actions && pro.actions.length) {
             pro.actions.forEach(act => {
                 res.push(act.variableId);
@@ -70,7 +73,7 @@ export class HtmlSelectComponent extends GaugeBaseComponent {
                     select.value = val;
 
                     // Set text and background color based on settings
-                    let range = ga.property.ranges.find(e => e.min == val);
+                    let range = ga.property.ranges?.find(e => e.min == val);
                     if (range){
                         select.style.background = range.color;
                         select.style.color = range.stroke;
@@ -119,18 +122,65 @@ export class HtmlSelectComponent extends GaugeBaseComponent {
                     option.innerHTML = 'Choose...';
                     select.appendChild(option);
                 } else {
-                    ga.property?.ranges?.forEach(element => {
-                        let option = document.createElement('option');
-                        option.value = element.min;
-                        if (element.text) {
-                            option.text = element.text;
-                        }
+                    if (ga.property?.optionSourceTagId) {
+                        const option = document.createElement('option');
+                        option.disabled = true;
+                        option.selected = true;
+                        option.text = 'Loading options...';
                         select.appendChild(option);
-                    });
+                    } else {
+                        ga.property?.ranges?.forEach(element => {
+                            let option = document.createElement('option');
+                            option.value = element.min;
+                            if (element.text) {
+                                option.text = element.text;
+                            }
+                            select.appendChild(option);
+                        });
+                    }
                 }
             }
         }
         return select;
+    }
+
+    static setDynamicOptions(ga: GaugeSettings, values: string[]) {
+        const ele = document.getElementById(ga.id);
+        const select = ele && Utils.searchTreeStartWith(ele, this.prefix);
+        if (!select) {
+            return;
+        }
+
+        const selectedValue = select.value;
+        select.innerHTML = '';
+        const placeholder = document.createElement('option');
+        placeholder.disabled = true;
+        placeholder.text = values.length ? 'Choose...' : 'No options available';
+        select.appendChild(placeholder);
+        values.forEach(value => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.text = value;
+            select.appendChild(option);
+        });
+        select.value = selectedValue;
+        select.title = '';
+    }
+
+    static setDynamicOptionsError(ga: GaugeSettings, error: string) {
+        const ele = document.getElementById(ga.id);
+        const select = ele && Utils.searchTreeStartWith(ele, this.prefix);
+        if (!select) {
+            return;
+        }
+
+        select.innerHTML = '';
+        const option = document.createElement('option');
+        option.disabled = true;
+        option.selected = true;
+        option.text = 'Unable to load options';
+        select.appendChild(option);
+        select.title = error;
     }
 
     static initElementColor(bkcolor, color, ele) {

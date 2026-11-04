@@ -24,6 +24,7 @@ export class FlexHeadComponent implements OnInit, OnDestroy {
     @Input() property: GaugeProperty | WidgetProperty;
     @Input() withStaticValue = true;
     @Input() withBitmask = false;
+    @Input() hideRanges = false;
     @ViewChild('flexinput', {static: false}) flexInput: FlexInputComponent;
     @Input() withProperty: PropertyType | null = null;
 
@@ -63,7 +64,7 @@ export class FlexHeadComponent implements OnInit, OnDestroy {
     }
 
     getProperty() {
-        if (this.withProperty) {
+        if (this.withProperty && !this.hideRanges && this.flexInput) {
             this.property.ranges = this.flexInput.getRanges();
         }
         return this.property;

@@ -1056,6 +1056,8 @@
     "device.not-property-security": "沒有安全與加密模式",
     "device.property-connection-options": "連線選項",
     "device.property-port": "連接埠",
+    "device.property-host": "主機",
+    "device.property-order-by": "排序欄位",
     "device.property-slave-id": "從屬 ID",
     "device.property-routing": "路由",
     "device.property-tockenized": "權杖化(tokenized)",

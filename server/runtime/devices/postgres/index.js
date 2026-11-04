@@ -6,6 +6,7 @@ const deviceUtils = require('../device-utils');
 const quoteIdentifier = (identifier) => `"${String(identifier).replace(/"/g, '""')}"`;
 const encodeAddress = (parts) => parts.map((part) => encodeURIComponent(part)).join('|');
 const decodeAddress = (address) => String(address).split('|').map((part) => decodeURIComponent(part));
+const MAX_DISTINCT_OPTIONS = 1000;
 
 function PostgreSQLClient(_data, _logger, _events, _runtime) {
     let data = JSON.parse(JSON.stringify(_data));
@@ -14,6 +15,7 @@ function PostgreSQLClient(_data, _logger, _events, _runtime) {
     const runtime = _runtime;
     const pools = new Map();
     const varsValue = {};
+    const warnedObjectDaqTags = new Set();
     let connected = false;
     let working = false;
     let lastTimestampValue = 0;
@@ -108,6 +110,43 @@ function PostgreSQLClient(_data, _logger, _events, _runtime) {
     this.getValues = () => Object.values(varsValue);
     this.getTagProperty = (id) => data.tags && data.tags[id];
     this.setValue = async function () { return false; };
+    this.getDistinctValuesForTag = async function (tagId) {
+        const tag = data.tags && data.tags[tagId];
+        if (!tag || typeof tag.address !== 'string') {
+            throw new Error('PostgreSQL option source tag was not found');
+        }
+
+        let parts;
+        try {
+            parts = decodeAddress(tag.address);
+        } catch (err) {
+            throw new Error(`Invalid PostgreSQL option source address: ${err.message}`);
+        }
+        if (parts.length !== 4 || parts.some((part) => !part)) {
+            throw new Error('Invalid PostgreSQL option source address');
+        }
+
+        const [database, schema, table, column] = parts;
+        const quotedColumn = quoteIdentifier(column);
+        const result = await (await getPool(database)).query(
+            `SELECT DISTINCT ${quotedColumn} AS value
+             FROM ${quoteIdentifier(schema)}.${quoteIdentifier(table)}
+             WHERE ${quotedColumn} IS NOT NULL
+             ORDER BY ${quotedColumn}
+             LIMIT $1`,
+            [MAX_DISTINCT_OPTIONS + 1]
+        );
+        if (result.rows.length > MAX_DISTINCT_OPTIONS) {
+            throw new Error(`PostgreSQL option source returned more than ${MAX_DISTINCT_OPTIONS} distinct values`);
+        }
+
+        return result.rows.map((row) => {
+            const value = row.value;
+            return value !== null && typeof value === 'object'
+                ? (JSON.stringify(value) || String(value))
+                : String(value);
+        });
+    };
 
     this.browse = async function (node) {
         const parts = node && node.id ? decodeAddress(node.id) : [];
@@ -133,7 +172,8 @@ function PostgreSQLClient(_data, _logger, _events, _runtime) {
             return result.rows.map((row) => ({
                 id: encodeAddress([database, row.table_schema, row.table_name]),
                 name: `${row.table_schema}.${row.table_name}`,
-                class: 'Object'
+                class: 'Object',
+                type: 'object'
             }));
         }
         if (parts.length === 3) {
@@ -153,6 +193,9 @@ function PostgreSQLClient(_data, _logger, _events, _runtime) {
                     ? (row.data_type === 'boolean' ? 'boolean' : 'number')
                     : 'string'
             }));
+        }
+        if (parts.length === 4) {
+            return [];
         }
         throw new Error('Invalid PostgreSQL browse path');
     };
@@ -174,42 +217,53 @@ function PostgreSQLClient(_data, _logger, _events, _runtime) {
                     logger.error(`'${data.name}' invalid PostgreSQL tag address for ${id}: ${err.message}`);
                     continue;
                 }
-                if (parts.length !== 4) {
+                if (parts.length !== 3 && parts.length !== 4) {
                     logger.error(`'${data.name}' invalid PostgreSQL tag address for ${id}`);
                     continue;
                 }
                 const [database, schema, table, column] = parts;
+                const isObjectTag = parts.length === 3;
                 const orderBy = data.property && data.property.orderBy;
                 const orderClause = orderBy ? ` ORDER BY ${quoteIdentifier(orderBy)} DESC` : '';
                 try {
                     const result = await (await getPool(database)).query(
-                        `SELECT ${quoteIdentifier(column)} AS value FROM ${quoteIdentifier(schema)}.${quoteIdentifier(table)}${orderClause} LIMIT 1`
+                        `SELECT ${isObjectTag ? '*' : `${quoteIdentifier(column)} AS value`} FROM ${quoteIdentifier(schema)}.${quoteIdentifier(table)}${orderClause} LIMIT 1`
                     );
                     successfulReads++;
-                    const rawValue = result.rows.length ? result.rows[0].value : null;
+                    const rawValue = result.rows.length
+                        ? (isObjectTag ? result.rows[0] : result.rows[0].value)
+                        : null;
                     const previous = varsValue[id];
-                    const value = rawValue === null ? null : deviceUtils.parseValue(rawValue, tag.type);
-                    const composedValue = await deviceUtils.tagValueCompose(
-                        value,
-                        previous ? previous.value : null,
-                        tag,
-                        runtime
-                    );
+                    const value = rawValue === null || isObjectTag
+                        ? rawValue
+                        : deviceUtils.parseValue(rawValue, tag.type);
+                    const composedValue = isObjectTag
+                        ? value
+                        : await deviceUtils.tagValueCompose(value, previous ? previous.value : null, tag, runtime);
+                    const changed = !previous || (isObjectTag
+                        ? JSON.stringify(previous.value) !== JSON.stringify(composedValue)
+                        : previous.value !== composedValue);
                     const current = {
                         id,
                         rawValue,
                         value: composedValue,
                         type: tag.type,
                         daq: tag.daq,
-                        changed: !previous || previous.value !== composedValue,
+                        changed,
                         timestamp: Date.now()
                     };
                     varsValue[id] = current;
-                    if (this.addDaq && deviceUtils.tagDaqToSave(current, current.timestamp)) {
+                    if (this.addDaq && isObjectTag && tag.daq && (tag.daq.enabled || tag.daq.restored)) {
+                        if (!warnedObjectDaqTags.has(id)) {
+                            logger.error(`'${data.name}' PostgreSQL object tag ${id} cannot be stored in DAQ`);
+                            warnedObjectDaqTags.add(id);
+                        }
+                    } else if (this.addDaq && deviceUtils.tagDaqToSave(current, current.timestamp)) {
                         toDaq[id] = current;
                     }
                 } catch (err) {
-                    logger.error(`'${data.name}' PostgreSQL read failed for ${schema}.${table}.${column}: ${err.message}`);
+                    const address = column ? `${schema}.${table}.${column}` : `${schema}.${table}`;
+                    logger.error(`'${data.name}' PostgreSQL read failed for ${address}: ${err.message}`);
                 }
             }
             if (successfulReads > 0 || !Object.keys(data.tags || {}).length) {

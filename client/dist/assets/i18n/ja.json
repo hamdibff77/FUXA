@@ -1056,6 +1056,8 @@
     "device.not-property-security": "セキュリティと暗号化モードなし",
     "device.property-connection-options": "接続オプション",
     "device.property-port": "ポート",
+    "device.property-host": "ホスト",
+    "device.property-order-by": "並べ替え列",
     "device.property-slave-id": "スレーブID",
     "device.property-routing": "ルーティング",
     "device.property-tockenized": "フラグメント化",

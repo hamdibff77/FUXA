@@ -9,6 +9,7 @@ const IoEventTypes = {
     DEVICE_PROPERTY: 'device-property',
     DEVICE_VALUES: 'device-values',
     DEVICE_BROWSE: 'device-browse',
+    DEVICE_OPTIONS_REQUEST: 'device-options-request',
     DEVICE_BROWSE_FOR_DEVICES: 'device-find-devices',
     DEVICE_NODE_ATTRIBUTE: 'device-node-attribute',
     DEVICE_WEBAPI_REQUEST: 'device-webapi-request',
