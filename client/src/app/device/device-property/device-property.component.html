@@ -577,8 +577,36 @@
                                     <span>{{propertyError}}</span>
                                 </div>
                             </div>
-
                         </mat-expansion-panel>
+                    </div>
+                </div>
+                <div *ngSwitchCase="deviceType.PostgreSQL">
+                    <div class="my-form-field block mb10">
+                        <span>{{'device.property-host' | translate}}</span>
+                        <input [(ngModel)]="data.device.property.address" placeholder="127.0.0.1"
+                            style="width: 350px" type="text" (click)="onAddressChanged()">
+                    </div>
+                    <div class="my-form-field block mb10">
+                        <span>{{'device.property-port' | translate}}</span>
+                        <input numberOnly [(ngModel)]="data.device.property.port" placeholder="5432"
+                            style="width: 120px" type="number">
+                    </div>
+                    <div class="my-form-field block mt5">
+                        <span>{{'general.username' | translate}}</span>
+                        <input [(ngModel)]="security.username" style="width: 350px;" type="text">
+                    </div>
+                    <div class="my-form-field block mt5">
+                        <span>{{'general.password' | translate}}</span>
+                        <input autocomplete="off" [(ngModel)]="security.password"
+                            (keydown)="keyDownStopPropagation($event)" [type]="showPassword ? 'text' : 'password'"
+                            style="width: 350px;">
+                        <mat-icon matSuffix (click)="showPassword = !showPassword" class="show-password">{{showPassword
+                            ? 'visibility' : 'visibility_off'}}</mat-icon>
+                    </div>
+                    <div class="my-form-field block mt5">
+                        <span>{{'device.property-order-by' | translate}}</span>
+                        <input [(ngModel)]="data.device.property.orderBy" placeholder="created_at"
+                            style="width: 350px" type="text">
                     </div>
                 </div>
                 <div *ngSwitchCase="deviceType.ADSclient">

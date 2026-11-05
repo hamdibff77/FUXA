@@ -39,6 +39,9 @@ export class TreetableComponent implements OnInit {
     }
 
     onExpandToggle(node: Node) {
+        if (!node.expandable || node.class !== NodeType.Object) {
+            return;
+        }
         const currentPosition = this.treetable.nativeElement.scrollTop;
         node.expanded = (node.expanded) ? false : true;
         if (node.expanded) {
@@ -183,8 +186,8 @@ export class Node {
         }
     }
 
-    static strToType(str: string): any {
-        if (NodeType[str]) {
+    static strToType(str: string | number): any {
+        if (typeof str === 'string' && Object.prototype.hasOwnProperty.call(NodeType, str)) {
             return NodeType[str];
         }
         return str;

@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, OnDestroy, ViewChild, Output, EventEmitter } from '@angular/core';
 import { HmiService } from '../../../_services/hmi.service';
 import { MAT_DIALOG_DATA as MAT_DIALOG_DATA, MatDialogRef as MatDialogRef } from '@angular/material/dialog';
-import { Device, OpcUaTagType, Tag } from '../../../_models/device';
+import { Device, DeviceType, OpcUaTagType, Tag } from '../../../_models/device';
 import { Subject, takeUntil } from 'rxjs';
 import { TreetableComponent, Node, NodeType } from '../../../gui-helpers/treetable/treetable.component';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -83,25 +83,34 @@ export class TagPropertyEditOpcuaComponent implements OnInit, OnDestroy {
     }
 
     addNodes(parent: Node, nodes: any) {
-        if (nodes) {
-            let tempTags = Object.values(this.data.device.tags);
-            nodes.forEach((n) => {
-                let node = new Node(n.id, n.name);
-                node.class = n.class;
-                node.property = this.getProperty(n);
-                let enabled = true;
-                if (node.class === NodeType.Variable) {
-                    const selected = tempTags.find((t: Tag) => t.address === n.id);
-                    if (selected) {
-                        enabled = false;
+        try {
+            if (Array.isArray(nodes)) {
+                let tempTags = Object.values(this.data.device.tags);
+                nodes.forEach((n) => {
+                    let node = new Node(n.id, n.name);
+                    node.class = Node.strToType(n.class);
+                    node.expandable = node.class === NodeType.Object;
+                    node.type = n.type;
+                    node.property = this.getProperty(n);
+                    let enabled = true;
+                    if (node.class === NodeType.Variable) {
+                        const selected = tempTags.find((t: Tag) => t.address === n.id);
+                        if (selected) {
+                            enabled = false;
+                        }
                     }
-                }
-                this.treetable.addNode(node, parent, enabled, false);
-                if (node.class === NodeType.Variable) {
-                    this.hmiService.askNodeAttributes(this.data.device.id, n);
-                }
-            });
-            this.treetable.update();
+                    this.treetable.addNode(node, parent, enabled, false);
+                    if (node.class === NodeType.Variable && this.data.device.type === DeviceType.OPCUA) {
+                        this.hmiService.askNodeAttributes(this.data.device.id, n);
+                    }
+                });
+            }
+        } finally {
+            const parentId = typeof parent === 'string' ? parent : parent?.id;
+            if (parentId && this.treetable?.nodes[parentId]) {
+                this.treetable.nodes[parentId].waiting = false;
+            }
+            this.treetable?.update();
         }
     }
 
@@ -129,7 +138,12 @@ export class TagPropertyEditOpcuaComponent implements OnInit, OnDestroy {
         return '';
     }
 
-    addError(parent: string, error: any) {
+    addError(parent: any, error: any) {
+        const parentId = typeof parent === 'string' ? parent : parent?.id;
+        if (parentId && this.treetable?.nodes[parentId]) {
+            this.treetable.nodes[parentId].waiting = false;
+            this.treetable.update();
+        }
     }
 
     onNoClick(): void {

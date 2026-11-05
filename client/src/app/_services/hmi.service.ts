@@ -453,6 +453,26 @@ export class HmiService {
         }
     }
 
+    public requestPostgreSQLDistinctValues(tagId: string): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            if (!this.socket) {
+                reject(new Error('The server connection is unavailable'));
+                return;
+            }
+            this.socket.timeout(15000).emit(IoEventTypes.DEVICE_OPTIONS_REQUEST, { tagId }, (timeoutError, response) => {
+                if (timeoutError) {
+                    reject(new Error('Timed out while loading PostgreSQL options'));
+                } else if (response?.error) {
+                    reject(new Error(response.error));
+                } else if (!Array.isArray(response?.result) || !response.result.every(value => typeof value === 'string')) {
+                    reject(new Error('The server returned invalid PostgreSQL options'));
+                } else {
+                    resolve(response.result);
+                }
+            });
+        });
+    }
+
     public askDeviceBrowseForDevices(deviceId: string) {
         if (this.socket) {
             this.socket.emit(IoEventTypes.DEVICE_BROWSE_FOR_DEVICES, { device: deviceId });
@@ -800,6 +820,7 @@ export enum IoEventTypes {
     DEVICE_PROPERTY = 'device-property',
     DEVICE_VALUES = 'device-values',
     DEVICE_BROWSE = 'device-browse',
+    DEVICE_OPTIONS_REQUEST = 'device-options-request',
     DEVICE_BROWSE_FOR_DEVICES = 'device-find-devices',
     DEVICE_NODE_ATTRIBUTE = 'device-node-attribute',
     DEVICE_WEBAPI_REQUEST = 'device-webapi-request',

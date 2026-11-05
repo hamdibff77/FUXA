@@ -1064,6 +1064,8 @@
     "device.not-property-security": "Modo sem segurança ou encriptação",
     "device.property-connection-options": "Opções de conexão",
     "device.property-port": "Porta",
+    "device.property-host": "Host",
+    "device.property-order-by": "Ordenar por coluna",
     "device.property-slave-id": "ID Escravo",
     "device.property-routing": "Roteamento",
     "device.property-tockenized": "Fragmentado",

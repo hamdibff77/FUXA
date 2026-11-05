@@ -295,6 +295,10 @@ export class TagPropertyService {
         );
     }
 
+    public addTagsPostgreSQL(device: Device, tagsMap?: any): Observable<any> {
+        return this.addTagsOpcUa(device, tagsMap);
+    }
+
     public editTagPropertyOpcUa(device: Device, tag: Tag, checkToAdd: boolean): Observable<any> {
         let oldTagId = tag.id;
         let tagToEdit: Tag = Utils.clone(tag);

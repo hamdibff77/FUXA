@@ -485,6 +485,16 @@ function browseDevice(deviceid, node, callback) {
     });
 }
 
+function getPostgreSQLDistinctValues(tagId) {
+    const deviceId = getDeviceIdFromTag(tagId);
+    const device = activeDevices[deviceId];
+    const comm = device && device.getComm();
+    if (!comm || typeof comm.getDistinctValuesForTag !== 'function') {
+        return Promise.reject(new Error('The option source must be a tag on an active PostgreSQL device'));
+    }
+    return comm.getDistinctValuesForTag(tagId);
+}
+
 function browseForDevices(deviceid, node, callback) {
     if (activeDevices[deviceid] && activeDevices[deviceid].browseForDevices) {
         return activeDevices[deviceid].browseForDevices(node, callback);
@@ -583,6 +593,7 @@ var devices = module.exports = {
     setDeviceValue: setDeviceValue,
     getDeviceIdFromTag: getDeviceIdFromTag,
     browseDevice: browseDevice,
+    getPostgreSQLDistinctValues: getPostgreSQLDistinctValues,
     browseForDevices: browseForDevices,
     readNodeAttribute: readNodeAttribute,
     getDeviceTagsResult: getDeviceTagsResult,

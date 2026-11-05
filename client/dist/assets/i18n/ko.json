@@ -1056,6 +1056,8 @@
     "device.not-property-security": "보안&암호화 제외 모드",
     "device.property-connection-options": "연결 옵션",
     "device.property-port": "포트",
+    "device.property-host": "호스트",
+    "device.property-order-by": "정렬 기준 열",
     "device.property-slave-id": "종속장치 ID",
     "device.property-routing": "라우팅",
     "device.property-tockenized": "파편",

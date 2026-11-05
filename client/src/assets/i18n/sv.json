@@ -1056,6 +1056,8 @@
     "device.not-property-security": "Utan säkerhet och kryptering",
     "device.property-connection-options": "Anslutningsalternativ",
     "device.property-port": "Port",
+    "device.property-host": "Värd",
+    "device.property-order-by": "Sorteringskolumn",
     "device.property-slave-id": "Slav-ID",
     "device.property-routing": "Routing",
     "device.property-tockenized": "Fragmenterad",

@@ -14,6 +14,7 @@ var GenericEthernetIPclient = require('./genericethernetip');
 var OmronEthernetIPclient = require('./omron-ethernetip');
 var FuxaServer = require('./fuxaserver');
 var ODBCclient = require('./odbc');
+var PostgreSQLclient = require('./postgres');
 var ADSclient = require('./adsclient');
 // var TEMPLATEclient = require('./template');
 var GpioClient = require('./gpio');
@@ -109,6 +110,8 @@ function Device(data, runtime) {
             return null;
         }
         comm = ODBCclient.create(data, logger, events, manager);
+    } else if (data.type === DeviceEnum.PostgreSQL) {
+        comm = PostgreSQLclient.create(data, logger, events, runtime);
     } else if (data.type === DeviceEnum.ADSclient) {
         if (!ADSclient) {
             return null;
@@ -343,7 +346,7 @@ function Device(data, runtime) {
                 }).catch(function (err) {
                     reject(err);
                 });
-            } else if (data.type === DeviceEnum.ODBC) {
+            } else if (data.type === DeviceEnum.ODBC || data.type === DeviceEnum.PostgreSQL) {
                 comm.browse(path, callback).then(function (result) {
                     resolve(result);
                 }).catch(function (err) {
@@ -434,7 +437,9 @@ function Device(data, runtime) {
      * Bind function to ask project stored property (security)
      */
     this.bindGetProperty = function (fnc) {
-        if (data.type === DeviceEnum.OPCUA || data.type === DeviceEnum.MQTTclient || data.type === DeviceEnum.ODBC || data.type === DeviceEnum.SNMP) {
+        if (data.type === DeviceEnum.OPCUA || data.type === DeviceEnum.MQTTclient ||
+            data.type === DeviceEnum.ODBC || data.type === DeviceEnum.SNMP ||
+            data.type === DeviceEnum.PostgreSQL) {
             comm.bindGetProperty(fnc);
         }
     }
@@ -652,6 +657,7 @@ var DeviceEnum = {
     OmronEthernetIP: 'OmronEthernetIP',
     FuxaServer: 'FuxaServer',
     ODBC: 'ODBC',
+    PostgreSQL: 'PostgreSQL',
     ADSclient: 'ADSclient',
     GPIO: 'GPIO',
     internal: 'internal',

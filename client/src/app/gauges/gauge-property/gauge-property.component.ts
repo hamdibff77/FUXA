@@ -9,8 +9,9 @@ import { Script } from '../../_models/script';
 import { PropertyType } from './flex-input/flex-input.component';
 import { PermissionData, PermissionDialogComponent } from './permission-dialog/permission-dialog.component';
 import { SettingsService } from '../../_services/settings.service';
-import { Device } from '../../_models/device';
+import { Device, DeviceType, DevicesUtils } from '../../_models/device';
 import { HtmlButtonComponent } from '../controls/html-button/html-button.component';
+import { HtmlSelectComponent } from '../controls/html-select/html-select.component';
 
 @Component({
     selector: 'gauge-property',
@@ -111,6 +112,32 @@ export class GaugePropertyComponent implements AfterViewInit {
 
     onAddAction() {
         this.flexAction.onAddAction();
+    }
+
+    onOptionSourceChanged(event: any) {
+        this.property.optionSourceTagId = event?.variableId || null;
+        if (!this.property.optionSourceTagId) {
+            this.property.optionRefreshTagId = null;
+        }
+        this.cdr.markForCheck();
+    }
+
+    onOptionRefreshTagChanged(event: any) {
+        this.property.optionRefreshTagId = event?.variableId || null;
+        this.cdr.markForCheck();
+    }
+
+    isSelectGauge() {
+        const type = this.data.settings?.type;
+        return typeof type === 'string' && type.startsWith(HtmlSelectComponent.TypeTag);
+    }
+
+    isSelectOptionsConfigurationValid() {
+        if (!this.isSelectGauge() || !this.property.optionSourceTagId) {
+            return true;
+        }
+        const sourceDevice = DevicesUtils.getDeviceFromTagId(this.data.devices || [], this.property.optionSourceTagId);
+        return sourceDevice?.type === DeviceType.PostgreSQL && !!this.property.optionRefreshTagId;
     }
 
     onRangeViewToggle() {
