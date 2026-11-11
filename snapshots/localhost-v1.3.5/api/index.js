@@ -22,7 +22,6 @@ var daqApi = require('./daq');
 var schedulerApi = require('./scheduler');
 var recipesApi = require('./recipes');
 var commandApi = require('./command');
-var dbExplorerApi = require('./dbexplorer');
 const reports = require('../dist/reports.service');
 const reportsApi = new reports.ReportsApiService();
 const verifyApiOrToken = require('./apikeys/verify-api-or-token');
@@ -97,8 +96,6 @@ function init(_server, _runtime) {
             apiApp.use(reportsApi.app());
             apiKeysApi.init(runtime, authMiddleware, verifyGroups);
             apiApp.use(apiKeysApi.app());
-            dbExplorerApi.init(runtime, authMiddleware);
-            apiApp.use(dbExplorerApi.app());
 
             apiApp.use((err, req, res, next) => {
                 if (err?.type === 'entity.too.large') {

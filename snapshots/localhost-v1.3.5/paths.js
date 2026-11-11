@@ -29,8 +29,8 @@ function getDefaultUserDataPath(platform) {
 }
 
 /**
- * 
- * @param {*} dirPath 
+ *
+ * @param {*} dirPath
  */
 function ensureDirs(dirPath) {
   if (fs.existsSync(dirPath)) {

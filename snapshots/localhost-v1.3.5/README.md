@@ -2,6 +2,8 @@
 # FUXA
 FUXA is a web-based Process Visualization (SCADA/HMI/Dashboard) software. With FUXA you can create modern process visualizations with individual designs for your machines and real-time data display.
 
+This snapshot contains FUXA 1.3.6-3007, including the SVG controls and user images in `_images`.
+
 ![fuxa editor](/screenshot/fuxa-editor.png) 
 
 ![fuxa ani](/screenshot/fuxa-thinglinks.gif)
@@ -17,15 +19,13 @@ FUXA is a web-based Process Visualization (SCADA/HMI/Dashboard) software. With F
 Here is a [live demo](https://frangoteam.github.io) example of FUXA editor.
 
 ## Installing and Running
-FUXA is developed with NodeJS (backend) and Angular (frontend).
-
-Install from [NPM](https://www.npmjs.com/package/@frangoteam/fuxa)
+FUXA is developed with NodeJS (backend) and Angular (frontend). To run this snapshot:
 ```
-npm install -g --unsafe-perm @frangoteam/fuxa
-fuxa
+npm install
+npm start -- --port 1882
 ```
 
-Open up a browser (better Chrome) and navigate to http://localhost:1881
+Open a browser (Chrome recommended) and navigate to http://localhost:1882. If you start with a custom `--userDir`, copy this snapshot's `_images` directory into that user-data directory to use the included image libraries.
 
 ## Usage
 - Look the guide in [wiki](https://frangoteam.github.io/FUXA/) pages
