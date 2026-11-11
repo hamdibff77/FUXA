@@ -2,6 +2,23 @@
     .container {
         margin-top: 20px;
     }
+    .symbol-appearance {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: end;
+        gap: 8px 16px;
+        margin-bottom: 12px;
+
+        h3 {
+            flex-basis: 100%;
+            margin: 0;
+        }
+
+        .my-form-field {
+            display: flex;
+            flex-direction: column;
+        }
+    }
     .var-ref {
         display: block;
         flex-variable {

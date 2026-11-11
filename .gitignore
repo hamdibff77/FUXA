@@ -78,6 +78,13 @@ _db/
 _pkg/
 #resources images
 _images/
+# Include the supplied control and user image libraries in the source checkout.
+!server/_images/
+server/_images/*
+!server/_images/SVG Controls/
+!server/_images/SVG Controls/**
+!server/_images/User Images/
+!server/_images/User Images/**
 
 _reports/
 

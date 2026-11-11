@@ -267,6 +267,16 @@ export class WidgetProperty extends GaugeProperty {
     scriptContent?: { moduleId: string, content: string };
     svgContent?: string;
     varsToBind?: WidgetPropertyVariable[] = [];
+    symbolAppearance?: WidgetSymbolAppearance;
+}
+
+export interface WidgetSymbolAppearance {
+    fill?: string;
+    stroke?: string;
+    strokeWidth?: number;
+    rotation?: number;
+    label?: string;
+    labelColor?: string;
 }
 
 export interface InputOptionsProperty {

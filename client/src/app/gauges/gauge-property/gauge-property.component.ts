@@ -85,6 +85,7 @@ export class GaugePropertyComponent implements AfterViewInit {
 
     onOkClick(): void {
         if (this.isWidget()) {
+            this.flexHead?.getProperty();
             this.data.settings.property = this.property;
         } else {
             this.data.settings.property = this.flexHead?.getProperty();

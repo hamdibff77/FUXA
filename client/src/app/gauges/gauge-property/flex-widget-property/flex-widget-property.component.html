@@ -1,4 +1,32 @@
 <div class="container">
+    <div class="symbol-appearance">
+        <h3>{{'gauges.widget-appearance' | translate}}</h3>
+        <div class="my-form-field">
+            <label>{{'gauges.widget-fill' | translate}}</label>
+            <input [(ngModel)]="property.symbolAppearance.fill" type="color">
+        </div>
+        <div class="my-form-field">
+            <label>{{'gauges.widget-stroke' | translate}}</label>
+            <input [(ngModel)]="property.symbolAppearance.stroke" type="color">
+        </div>
+        <div class="my-form-field">
+            <label>{{'gauges.widget-stroke-width' | translate}}</label>
+            <input [(ngModel)]="property.symbolAppearance.strokeWidth" type="number" min="0" step="0.5">
+        </div>
+        <div class="my-form-field">
+            <label>{{'gauges.widget-rotation' | translate}}</label>
+            <input [(ngModel)]="property.symbolAppearance.rotation" type="number">
+        </div>
+        <div class="my-form-field">
+            <label>{{'gauges.widget-label' | translate}}</label>
+            <input [(ngModel)]="property.symbolAppearance.label" type="text">
+        </div>
+        <div class="my-form-field">
+            <label>{{'gauges.widget-label-color' | translate}}</label>
+            <input [(ngModel)]="property.symbolAppearance.labelColor" type="color">
+        </div>
+    </div>
+    <flex-head [data]="data" [property]="property" [withProperty]="rangePropertyType"></flex-head>
     <div *ngFor="let varRef of property.varsToBind" class="var-ref">
         <div class="my-form-field">
             <input type="text"
@@ -8,7 +36,7 @@
         <span> - </span>
         <div class="inbk">
             <flex-variable
-                    [data]="dataDevices"
+                    [data]="data"
                     [value]="varRef"
                     [withStaticValue]="true"
                     [withStaticType]="varRef.type"

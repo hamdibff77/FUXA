@@ -92,7 +92,8 @@ async function fixture(t) {
         }
         Object.assign(window, {
             HtmlImageComponent: modules.image.HtmlImageComponent,
-            GaugesManager: modules.gauges.GaugesManager
+            GaugesManager: modules.gauges.GaugesManager,
+            SvgUtils: modules.svgUtils.SvgUtils
         });
         mypathseg.initPathSeg();
         mybrowser.initBrowser();
@@ -131,6 +132,10 @@ async function fixture(t) {
         };
         window.changeFill = value => { editor.colorFill = value; editor.onChangeFillColor(value); };
         window.snapshot = () => document.querySelector('[id^="D-OXC_"] svg').outerHTML;
+        window.applySymbolAppearance = appearance => SvgUtils.applyWidgetAppearance(
+            document.querySelector('[id^="D-OXC_"] svg'),
+            appearance
+        );
     }, { sources });
     await page.evaluate(svg => { window.settings = importWidget(svg); }, fs.readFileSync(path.join(__dirname, 'fixtures/multicolor-widget.svg'), 'utf8'));
     return page;
@@ -200,6 +205,91 @@ test('dynamic widget colors continue receiving bound values after background cha
         return { first, preserved, updated: label.getAttribute('fill') };
     });
     assert.deepEqual(result, { first: '#aa22dd', preserved: '#aa22dd', updated: '#22ddaa' });
+});
+
+test('SVG widget appearance supports fill, stroke, rotation and a configurable label', async t => {
+    const page = await fixture(t);
+    const result = await page.evaluate(() => {
+        applySymbolAppearance({
+            fill: '#112233',
+            stroke: '#445566',
+            strokeWidth: 2,
+            rotation: 90,
+            label: 'Horizontal short',
+            labelColor: '#778899'
+        });
+        const svg = document.querySelector('[id^="D-OXC_"] svg');
+        const shape = svg.querySelector('path, rect, circle, polygon');
+        const label = svg.querySelector('#fuxa-widget-label');
+        return {
+            fill: shape.getAttribute('fill'),
+            stroke: shape.getAttribute('stroke'),
+            strokeWidth: shape.getAttribute('stroke-width'),
+            rotation: svg.style.transform,
+            label: label.textContent,
+            labelColor: label.getAttribute('fill')
+        };
+    });
+    assert.deepEqual(result, {
+        fill: '#112233',
+        stroke: '#445566',
+        strokeWidth: '2',
+        rotation: 'rotate(90deg)',
+        label: 'Horizontal short',
+        labelColor: '#778899'
+    });
+});
+
+test('a gradient-based Symbol Factory SVG can be configured as an FUXA widget', async t => {
+    const page = await fixture(t);
+    const result = await page.evaluate(() => {
+        const svgDocument = new DOMParser().parseFromString(
+            '<svg xmlns="http://www.w3.org/2000/svg" width="64px" height="64px" viewBox="0 0 112.5 29.924">' +
+            '<defs><linearGradient id="metal"><stop stop-color="#646566"/><stop offset="1" stop-color="#909091"/></linearGradient></defs>' +
+            '<g id="Group_Horizonatal_Short"><path fill="url(#metal)" d="M112.5,29.924H0V0.224h112.5V29.924z"/></g></svg>',
+            'image/svg+xml'
+        );
+        const svg = svgDocument.querySelector('svg');
+        SvgUtils.applyWidgetAppearance(svg, {
+            fill: '#1280c0',
+            stroke: '#123456',
+            strokeWidth: 1.5,
+            rotation: 90,
+            label: 'Tank',
+            labelColor: '#ffffff'
+        });
+        const shape = svg.querySelector('path');
+        return {
+            fill: shape.getAttribute('fill'),
+            stroke: shape.getAttribute('stroke'),
+            strokeWidth: shape.getAttribute('stroke-width'),
+            rotation: svg.style.transform,
+            label: svg.querySelector('#fuxa-widget-label')?.textContent
+        };
+    });
+    assert.deepEqual(result, {
+        fill: '#1280c0',
+        stroke: '#123456',
+        strokeWidth: '1.5',
+        rotation: 'rotate(90deg)',
+        label: 'Tank'
+    });
+});
+
+test('SVG widget range colors update symbol paths and preserve unspecified paint', async t => {
+    const page = await fixture(t);
+    const result = await page.evaluate(() => {
+        const svg = document.querySelector('[id^="D-OXC_"] svg');
+        const shape = svg.querySelector('path, rect, circle, polygon');
+        settings.property.symbolAppearance = {};
+        settings.property.variableId = 'symbol-state';
+        settings.property.ranges = [{ min: 1, max: 1, color: '#aabbcc', stroke: '#ddeeff' }];
+        HtmlImageComponent.processValue(settings, { node: document.getElementById(settings.id) }, {
+            id: 'symbol-state', value: 1
+        }, {});
+        return { fill: shape.getAttribute('fill'), stroke: shape.getAttribute('stroke') };
+    });
+    assert.deepEqual(result, { fill: '#aabbcc', stroke: '#ddeeff' });
 });
 
 test('save through EditorComponent and reload through HtmlImageComponent preserves colors', async t => {

@@ -1634,15 +1634,15 @@ export class EditorComponent implements OnInit, AfterViewInit, OnDestroy {
                     } else if (this.resourcesService.isVideo(this.imagefile)) {
                         this.setModeParam = this.imagefile;
                         self.setMode('own_ctrl-video');
+                    } else {
+                        const svgEditor = self.winRef.nativeWindow.svgEditor;
+                        if (typeof svgEditor.setUrlImageToAdd !== 'function') {
+                            console.error('SVG editor does not support image insertion');
+                            return;
+                        }
+                        svgEditor.setUrlImageToAdd(self.imagefile);
+                        self.setMode('image');
                     }
-                    // } else {
-                    //     this.getBase64Image(result, function (imgdata) {
-                    //         if (self.winRef.nativeWindow.svgEditor.setUrlImageToAdd) {
-                    //             self.winRef.nativeWindow.svgEditor.setUrlImageToAdd(imgdata);
-                    //         }
-                    //         self.setMode('image');
-                    //     });
-                    // }
                 }
             }
         });

@@ -199,6 +199,67 @@ export class SvgUtils {
         }
     }
 
+    static applyWidgetAppearance(svgElement: SVGSVGElement, appearance: {
+        fill?: string;
+        stroke?: string;
+        strokeWidth?: number;
+        rotation?: number;
+        label?: string;
+        labelColor?: string;
+    }) {
+        if (!svgElement || !appearance) {
+            return;
+        }
+
+        const shapes = svgElement.querySelectorAll('path, rect, circle, ellipse, line, polyline, polygon, text, use');
+        shapes.forEach((shape: Element) => {
+            if (appearance.fill) {
+                shape.setAttribute('fill', appearance.fill);
+            }
+            if (appearance.stroke) {
+                shape.setAttribute('stroke', appearance.stroke);
+            }
+            if (Number.isFinite(appearance.strokeWidth)) {
+                shape.setAttribute('stroke-width', appearance.strokeWidth.toString());
+            }
+        });
+
+        svgElement.style.transform = appearance.rotation ? `rotate(${appearance.rotation}deg)` : '';
+        svgElement.style.transformOrigin = 'center';
+
+        let label = svgElement.querySelector('#fuxa-widget-label') as SVGTextElement;
+        if (appearance.label?.trim()) {
+            if (!label) {
+                label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('id', 'fuxa-widget-label');
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('font-size', '4');
+                const viewBox = svgElement.viewBox.baseVal;
+                label.setAttribute('x', (viewBox.x + viewBox.width / 2).toString());
+                label.setAttribute('y', (viewBox.y + viewBox.height - 1).toString());
+                svgElement.appendChild(label);
+            }
+            label.textContent = appearance.label;
+            label.setAttribute('fill', appearance.labelColor || '#000000');
+        } else {
+            label?.remove();
+        }
+    }
+
+    static applyWidgetRangeColor(svgElement: SVGSVGElement, fill?: string, stroke?: string) {
+        if (!svgElement) {
+            return;
+        }
+        svgElement.querySelectorAll('path, rect, circle, ellipse, line, polyline, polygon, text, use').forEach((shape: Element) => {
+            if (fill) {
+                shape.setAttribute('fill', fill);
+            }
+            if (stroke) {
+                shape.setAttribute('stroke', stroke);
+            }
+        });
+    }
+
     static validateVariable(variable: WidgetPropertyVariable): boolean {
         if (variable.type === 'number' && !Utils.isNumeric(variable.variableValue)) {
             return false;

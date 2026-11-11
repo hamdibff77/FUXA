@@ -94,6 +94,7 @@ export class HtmlImageComponent extends GaugeBaseComponent {
                     } else {
                         svgImageContainer.appendChild(svgElement);
                     }
+                    SvgUtils.applyWidgetAppearance(svgImageContainer.querySelector('svg'), gaugeSettings.property.symbolAppearance);
                     if (gaugeSettings.property.scriptContent) {
                         const newScript = document.createElement('script');
                         newScript.textContent = SvgUtils.initWidget(gaugeSettings.property.scriptContent.content, gaugeSettings.property.varsToBind);
@@ -203,10 +204,18 @@ export class HtmlImageComponent extends GaugeBaseComponent {
                         }
                         // check if general shape (line/path/fpath/text) to set the stroke
                         if (propertyColor.fill) {
-                            svgele.node.setAttribute('fill', propertyColor.fill);
+                            if (ga.property.type === HtmlImageComponent.propertyWidgetType && ga.property.symbolAppearance) {
+                                SvgUtils.applyWidgetRangeColor(svgele.node.querySelector('svg'), propertyColor.fill);
+                            } else {
+                                svgele.node.setAttribute('fill', propertyColor.fill);
+                            }
                         }
                         if (propertyColor.stroke) {
-                            svgele.node.setAttribute('stroke', propertyColor.stroke);
+                            if (ga.property.type === HtmlImageComponent.propertyWidgetType && ga.property.symbolAppearance) {
+                                SvgUtils.applyWidgetRangeColor(svgele.node.querySelector('svg'), undefined, propertyColor.stroke);
+                            } else {
+                                svgele.node.setAttribute('stroke', propertyColor.stroke);
+                            }
                         }
 
                     }
