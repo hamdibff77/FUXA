@@ -43,4 +43,126 @@
     .item-icon-maps {
         color: #37BE5F;
     }
+
+    .connection-list {
+        margin-top: 6px;
+        border-top: 1px solid var(--toolboxBorder);
+        padding-top: 4px;
+    }
+
+    .connection-list-heading {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 4px 5px;
+        font-weight: 600;
+    }
+
+    .connection-list-heading mat-icon {
+        width: 18px;
+        height: 18px;
+        font-size: 18px;
+    }
+
+    .connection-list-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 34px;
+        padding: 3px 4px;
+    }
+
+    .connection-list-status {
+        flex: 0 0 8px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+
+    .connection-list-details {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-width: 0;
+        gap: 2px;
+    }
+
+    .connection-list-name,
+    .connection-list-meta {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .connection-list-meta,
+    .connection-list-status-text {
+        opacity: 0.7;
+        font-size: 10px;
+    }
+
+    .connection-list-status-text {
+        flex: 0 0 auto;
+    }
+
+    .connection-list-menu-button {
+        flex: 0 0 32px;
+        width: 32px;
+        height: 32px;
+        line-height: 32px;
+    }
+
+    .connection-list-menu-button mat-icon {
+        font-size: 18px;
+    }
+
+    .connection-tags {
+        margin-left: 14px;
+    }
+
+    .connection-tags-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 28px;
+        padding: 0 4px;
+        font-size: 11px;
+        line-height: 28px;
+    }
+
+    .connection-tags-toggle mat-icon {
+        width: 18px;
+        height: 18px;
+        margin-right: 3px;
+        font-size: 18px;
+        line-height: 18px;
+    }
+
+    .connection-tags-list {
+        padding: 0 4px 4px 22px;
+    }
+
+    .connection-tag {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        gap: 1px;
+        padding: 3px 0;
+    }
+
+    .connection-tag-name,
+    .connection-tag-meta {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .connection-tag-name {
+        font-size: 11px;
+    }
+
+    .connection-tag-meta,
+    .connection-tags-empty {
+        opacity: 0.7;
+        font-size: 10px;
+    }
 }

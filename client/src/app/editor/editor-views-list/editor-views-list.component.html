@@ -37,3 +37,48 @@
         <button mat-menu-item (click)="onCleanView(item)" *ngIf="item.type !== cardViewType && item.type !== mapsViewType">{{'editor.view-clean' | translate}}</button>
     </mat-menu>
 </div>
+<div class="connection-list">
+    <div class="connection-list-heading">
+        <mat-icon>storage</mat-icon>
+        <span>{{'device.list-device' | translate}} ({{connections.length}})</span>
+    </div>
+    <div *ngFor="let device of connections" class="connection-list-item">
+        <span class="connection-list-status" [style.background-color]="getConnectionStatusColor(device)"
+            [title]="getConnectionStatus(device) ? ('device.' + getConnectionStatus(device) | translate) : '-'"></span>
+        <div class="connection-list-details">
+            <span class="connection-list-name">{{device.name}}</span>
+            <span class="connection-list-meta">{{device.type}} &nbsp;|&nbsp; {{getConnectionAddress(device)}}</span>
+        </div>
+        <span class="connection-list-status-text">
+            {{getConnectionStatus(device) ? ('device.' + getConnectionStatus(device) | translate) : '-'}}
+        </span>
+        <button mat-icon-button class="connection-list-menu-button"
+            [matMenuTriggerFor]="connectionMenu"
+            [attr.aria-label]="'device.property-client' | translate"
+            (click)="$event.stopPropagation()">
+            <mat-icon>more_vert</mat-icon>
+        </button>
+        <mat-menu #connectionMenu="matMenu">
+            <button mat-menu-item (click)="onConfigureConnection(device)">
+                <mat-icon>settings</mat-icon>
+                <span>{{'device.property-client' | translate}}</span>
+            </button>
+        </mat-menu>
+    </div>
+    <div *ngFor="let device of connections" class="connection-tags">
+        <button mat-button class="connection-tags-toggle" (click)="toggleConnectionTags(device, $event)"
+            [attr.aria-expanded]="!!expandedConnections[device.id]">
+            <mat-icon>{{expandedConnections[device.id] ? 'expand_less' : 'expand_more'}}</mat-icon>
+            <span>{{'chart.config-tags' | translate}} ({{getConnectionTags(device).length}})</span>
+        </button>
+        <div *ngIf="expandedConnections[device.id]" class="connection-tags-list">
+            <div *ngFor="let tag of getConnectionTags(device)" class="connection-tag">
+                <span class="connection-tag-name">{{tag.label || tag.name || tag.id}}</span>
+                <span class="connection-tag-meta">{{tag.address || tag.type || ''}}</span>
+            </div>
+            <div *ngIf="getConnectionTags(device).length === 0" class="connection-tags-empty">
+                -
+            </div>
+        </div>
+    </div>
+</div>
